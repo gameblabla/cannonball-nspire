@@ -2,20 +2,8 @@
 
 #include "globals.hpp"
 
-#ifdef COMPILE_SOUND_CODE
-#ifdef SDL2
-#include "sdl2/audio.hpp"
-#else
-#include "sdl/audio.hpp"
-#endif
-#endif
-
 namespace cannonball
 {
-#ifdef COMPILE_SOUND_CODE
-    extern Audio audio;
-#endif
-
     // Frame counter
 	extern int frame;
 

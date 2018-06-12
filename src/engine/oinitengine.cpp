@@ -101,8 +101,6 @@ void OInitEngine::init(int8_t level)
         oroad.road_ctrl  = ORoad::ROAD_BOTH_P0;
         oroad.road_width = RD_WIDTH_MERGE;        // Setup a default road width
     }
-
-    osoundint.reset();
 }
 
 // Source: 0x8402
@@ -114,7 +112,6 @@ void OInitEngine::setup_stage1()
     oferrari.reset_car();               // Reset Car Speed/Rev Values
     outrun.outputs->set_digital(OOutputs::D_EXT_MUTE);
     outrun.outputs->set_digital(OOutputs::D_SOUND);
-    osoundint.engine_data[sound::ENGINE_VOL] = 0x3F;
     ostats.extend_play_timer = 0;
     checkpoint_marker = 0;              // Denote not past checkpoint marker
     otraffic.set_max_traffic();         // Set Number Of Enemy Cars Based On Dip Switches
@@ -522,29 +519,6 @@ void OInitEngine::check_stage()
             // Denote Checkpoint Passed
             checkpoint_marker = -1;
 
-            // Cycle Music every 5 stages
-            if (outrun.game_state == GS_INGAME)
-            {
-                if (ostats.cur_stage == 5 || ostats.cur_stage == 10)
-                {
-                    switch (omusic.music_selected)
-                    {
-                        // Cycle in-built sounds
-                        case sound::MUSIC_BREEZE:
-                            omusic.music_selected = sound::MUSIC_SPLASH;
-                            osoundint.queue_sound(sound::MUSIC_SPLASH2); // Play without rev effect
-                            break;
-                        case sound::MUSIC_SPLASH:
-                            omusic.music_selected = sound::MUSIC_MAGICAL;
-                            osoundint.queue_sound(sound::MUSIC_MAGICAL2); // Play without rev effect
-                            break;
-                        case sound::MUSIC_MAGICAL:
-                            omusic.music_selected = sound::MUSIC_BREEZE;
-                            osoundint.queue_sound(sound::MUSIC_BREEZE2); // Play without rev effect
-                            break;
-                    }                 
-                }
-            }              
         }
     }
 

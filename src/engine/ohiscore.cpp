@@ -106,13 +106,6 @@ void OHiScore::tick()
             // New High Score
             if (score_pos != -1)
             {
-                osoundint.queue_sound(sound::PCM_WAVE);
-                #ifdef COMPILE_SOUND_CODE
-                if (config.sound.custom_music[3].enabled)
-                    cannonball::audio.load_wav(config.sound.custom_music[3].filename.c_str());
-                else
-                #endif
-                osoundint.queue_sound(sound::MUSIC_LASTWAVE);
                 insert_score();               
             }
             // Not a High Score

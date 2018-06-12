@@ -74,11 +74,7 @@ void OMusic::enable()
      
     blit_music_select();
     ohud.blit_text2(TEXT2_SELECT_MUSIC); // Select Music By Steering
-  
-    osoundint.queue_sound(sound::RESET);
-    if (!config.sound.preview)
-        osoundint.queue_sound(sound::PCM_WAVE); // Wave Noises
-
+ 
     // Enable block of sprites
     entry_start = OSprites::SPRITE_ENTRIES - 0x10;    
     for (int i = entry_start; i < entry_start + 5; i++)
@@ -252,7 +248,6 @@ void OMusic::tick()
             ohud.blit_text2(TEXT2_MAGICAL);
             video.write_text32(0x1105C0, NOTE_TILES1);
             video.write_text32(0x110640, NOTE_TILES2);
-            music_selected = sound::MUSIC_MAGICAL;
         }
     }
     // Centre
@@ -274,7 +269,6 @@ void OMusic::tick()
             ohud.blit_text2(TEXT2_BREEZE);
             video.write_text32(0x1105C6, NOTE_TILES1);
             video.write_text32(0x110646, NOTE_TILES2);
-            music_selected = sound::MUSIC_BREEZE;
         }
     }
     // Steer Right
@@ -296,7 +290,6 @@ void OMusic::tick()
             ohud.blit_text2(TEXT2_SPLASH);
             video.write_text32(0x1105C8, NOTE_TILES1);
             video.write_text32(0x110648, NOTE_TILES2);
-            music_selected = sound::MUSIC_SPLASH;
         }
     }
 
@@ -309,13 +302,10 @@ void OMusic::tick()
     {
         if (music_selected != last_music_selected)
         {
-            if (preview_counter == 0 && last_music_selected != -1)
-                osoundint.queue_sound(sound::FM_RESET);
 
             if (++preview_counter >= 10)
             {
                 preview_counter = 0;
-                osoundint.queue_sound(music_selected);
                 last_music_selected = music_selected;
             }
         

@@ -31,7 +31,6 @@
 #include "engine/otiles.hpp"
 #include "engine/otraffic.hpp"
 #include "engine/outils.hpp"
-#include "cannonboard/interface.hpp"
 
 Outrun outrun;
 
@@ -75,11 +74,7 @@ void Outrun::init()
 
     tick_counter = 0;
 
-    // CannonBoard Config: When Used in original cabinet
-    if (config.cannonboard.enabled && config.cannonboard.cabinet == config.cannonboard.CABINET_MOVING)
-        init_motor_calibration();
-    else
-        boot();
+    boot();
 }
 
 void Outrun::boot()
@@ -92,7 +87,6 @@ void Outrun::boot()
     ostats.init(cannonball_mode == MODE_TTRIAL);
     init_jump_table();
     oinitengine.init(cannonball_mode == MODE_TTRIAL ? ttrial.level : 0);
-    osoundint.init();
     outils::reset_random_seed(); // Ensure we match the genuine boot up of the original game each time
 }
 
@@ -266,44 +260,8 @@ void Outrun::jump_table(Packet* packet)
     // Motor Code
     if (tick_frame)
     {
-        if (game_state == GS_CALIBRATE_MOTOR)
-        {
-            if (outputs->calibrate_motor(packet->ai1, packet->mci, 0))
-            {
-                video.enabled     = false;
-                video.clear_text_ram();
-                oroad.horizon_set = 0;
-                boot();
-            }
-        }
-        else
-        {
-            if (config.controls.haptic && config.controls.analog)
+       if (config.controls.haptic && config.controls.analog)
                 outputs->tick(OOutputs::MODE_FFEEDBACK, oinputs.input_steering);
-            else if (config.cannonboard.enabled)
-                outputs->tick(OOutputs::MODE_CABINET, packet->ai1, config.cannonboard.cabinet);
-        }
-    }
-
-    if (config.cannonboard.enabled && config.cannonboard.debug)
-    {
-        uint16_t x = 1;
-        uint16_t y = 5;
-        ohud.blit_text_new(x, y, "AI0 ACCEL");   ohud.blit_text_new(x + 10, y, Utils::to_hex_string(packet->ai0).c_str(), OHud::PINK); x += 13;
-        ohud.blit_text_new(x, y, "AI2 WHEEL");   ohud.blit_text_new(x + 10, y, Utils::to_hex_string(packet->ai2).c_str(), OHud::PINK); x += 13;
-        ohud.blit_text_new(x, y, "AI3 BRAKE");   ohud.blit_text_new(x + 10, y, Utils::to_hex_string(packet->ai3).c_str(), OHud::PINK); x += 13;
-      
-        x = 1;
-        y = 6;
-        ohud.blit_text_new(x, y, "AI1 MOTOR"); ohud.blit_text_new(x + 10, y, Utils::to_hex_string(packet->ai1).c_str(), OHud::PINK); x += 13;
-        ohud.blit_text_new(x, y, "MC OUT");    ohud.blit_text_new(x + 10, y, Utils::to_hex_string(outputs->hw_motor_control).c_str(), OHud::PINK); x += 13;
-        ohud.blit_text_new(x, y, "MC IN");     ohud.blit_text_new(x + 10, y, Utils::to_hex_string(packet->mci).c_str(), OHud::PINK);
-
-        x = 1;
-        y = 7;
-        ohud.blit_text_new(x, y, "DI1");     ohud.blit_text_new(x + 10, y, Utils::to_hex_string(packet->di1).c_str(), OHud::PINK); x += 13;
-        ohud.blit_text_new(x, y, "DI2");     ohud.blit_text_new(x + 10, y, Utils::to_hex_string(packet->di2).c_str(), OHud::PINK); x += 13;
-        ohud.blit_text_new(x, y, "DIG OUT"); ohud.blit_text_new(x + 10, y, Utils::to_hex_string(outputs->dig_out).c_str(), OHud::PINK); x += 13;
     }
 }
 
@@ -330,10 +288,6 @@ void Outrun::main_switch()
             ostats.time_counter = 5;
             ostats.frame_counter = ostats.frame_reset;
             ohiscore.init();
-            osoundint.queue_sound(sound::FM_RESET);
-            #ifdef COMPILE_SOUND_CODE
-            cannonball::audio.clear_wav();
-            #endif
             game_state = GS_BEST1;
 
         case GS_BEST1:
@@ -353,9 +307,8 @@ void Outrun::main_switch()
             oinitengine.car_increment = 0;
             oferrari.car_inc_old = 0;
             ostats.time_counter = 5;
-            ostats.frame_counter = ostats.frame_reset;
-            osoundint.queue_sound(0);
-            ologo.enable(sound::FM_RESET);
+            ostats.frame_counter = ostats.frame_reset;;
+            ologo.enable(0);
             game_state = GS_LOGO;
 
         case GS_LOGO:
@@ -409,19 +362,7 @@ void Outrun::main_switch()
             oroad.tick();
             oroad.tick();
             oroad.tick();
-            osoundint.queue_sound(sound::STOP_CHEERS);
-            osoundint.queue_sound(sound::VOICE_GETREADY);
-            
-            #ifdef COMPILE_SOUND_CODE
-            if (omusic.music_selected >= 0 && omusic.music_selected <= 2)
-            {
-                cannonball::audio.load_wav(config.sound.custom_music[omusic.music_selected].filename.c_str());
-                osoundint.queue_sound(sound::REVS); // queue revs sound manually
-            }
-            else
-            #endif
-                osoundint.queue_sound(omusic.music_selected);
-            
+
             if (!freeze_timer)
                 ostats.time_counter = ostats.TIME[config.engine.dip_time * 40]; // Set time to begin level with
             else
@@ -431,7 +372,6 @@ void Outrun::main_switch()
             ostats.credits--;                                   // Update Credits
             ohud.blit_text1(TEXT1_CLEAR_START);
             ohud.blit_text1(TEXT1_CLEAR_CREDITS);
-            osoundint.queue_sound(sound::INIT_CHEERS);
             video.enabled = true;
             game_state = GS_START1;
             ohud.draw_main_hud();
@@ -442,7 +382,6 @@ void Outrun::main_switch()
         case GS_START2:
             if (--ostats.frame_counter < 0)
             {
-                osoundint.queue_sound(sound::SIGNAL1);
                 ostats.frame_counter = ostats.frame_reset;
                 game_state++;
             }
@@ -455,9 +394,6 @@ void Outrun::main_switch()
                 {
                     ohud.clear_timetrial_text();
                 }
-
-                osoundint.queue_sound(sound::SIGNAL2);
-                osoundint.queue_sound(sound::STOP_CHEERS);
                 ostats.frame_counter = ostats.frame_reset;
                 game_state++;
             }
@@ -515,7 +451,6 @@ void Outrun::main_switch()
                 ohud.blit_text_new(9,  18, "CRASHES            - ");
                 ohud.blit_text_new(31, 18, Utils::to_string((int) ttrial.crashes).c_str(), OHud::GREEN);
             }
-            osoundint.queue_sound(sound::NEW_COMMAND);
             game_state = GS_GAMEOVER;
 
         case GS_GAMEOVER:
@@ -575,11 +510,6 @@ void Outrun::main_switch()
             ostats.time_counter = 0x30;
             ostats.frame_counter = ostats.frame_reset;
             ohiscore.init();
-            osoundint.queue_sound(sound::NEW_COMMAND);
-            osoundint.queue_sound(sound::FM_RESET);
-            #ifdef COMPILE_SOUND_CODE
-            cannonball::audio.clear_wav();
-            #endif
             game_state = GS_BEST2;
             // fall through
 
@@ -742,7 +672,7 @@ bool Outrun::decrement_timers()
 
 void Outrun::init_motor_calibration()
 {
-    otiles.init();
+   /* otiles.init();
     opalette.init();
     oinputs.init();
     outputs->init();
@@ -767,7 +697,7 @@ void Outrun::init_motor_calibration()
     video.write_pal32(&dst, PAL_SERVICE[0]);
     video.write_pal32(&dst, PAL_SERVICE[1]);
     video.write_pal32(&dst, PAL_SERVICE[2]);
-    video.write_pal32(&dst, PAL_SERVICE[3]);
+    video.write_pal32(&dst, PAL_SERVICE[3]);*/
 }
 
 // -------------------------------------------------------------------------------
@@ -777,7 +707,6 @@ void Outrun::init_motor_calibration()
 void Outrun::init_attract()
 {
     video.enabled             = true;
-    osoundint.has_booted      = true;
     oferrari.car_ctrl_active  = true;
     oferrari.car_inc_old      = car_inc_bak >> 16;
     oinitengine.car_increment = car_inc_bak;

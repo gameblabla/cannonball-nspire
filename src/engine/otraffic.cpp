@@ -428,7 +428,6 @@ void OTraffic::update_props(oentry* sprite)
     // Overtake Traffic Object
     if (z16 >= 0x200)
     {
-        osoundint.queue_sound(sound::RESET);
         if (outrun.game_state == GS_INGAME)
         {
             // Update score on overtake
@@ -764,7 +763,6 @@ void OTraffic::check_collision(oentry* sprite)
                 if (traffic_speed < 0) traffic_speed = 0;
                 oinitengine.car_increment = (traffic_speed << 16) | (oinitengine.car_increment & 0xFFFF);
                 oferrari.car_inc_old = traffic_speed;
-                d0 = sound::REBOUND; // rebound sound effect
                 collision_traffic++; // denote collision with traffic
                 outrun.ttrial.vehicle_cols++;
             }
@@ -778,7 +776,6 @@ void OTraffic::check_collision(oentry* sprite)
     // New sound effect triggered
     if (!traffic_fx_old && sprite->traffic_fx)
     {
-        osoundint.queue_sound(sprite->traffic_fx);
         // Set all proximity bits on
         if (outils::random() & 1)
             sprite->traffic_proximity = 0xFF;
@@ -790,37 +787,5 @@ void OTraffic::check_collision(oentry* sprite)
 // Source: 0x7A8C
 void OTraffic::traffic_sound()
 {
-    // Clear traffic data
-    osoundint.engine_data[sound::TRAFFIC1] = 0;
-    osoundint.engine_data[sound::TRAFFIC2] = 0;
-    osoundint.engine_data[sound::TRAFFIC3] = 0;
-    osoundint.engine_data[sound::TRAFFIC4] = 0;
-
-    if (outrun.game_state != GS_INGAME && outrun.game_state != GS_ATTRACT)
-        return;
-
-    // Return if we have chosen not to play sound in attract mode
-    if (outrun.game_state == GS_ATTRACT && !config.sound.advertise)
-        return;
-
-    // Return if we haven't spawned any traffic
-    if (!traffic_count)
-        return;
-
-    // Max number of sounds we can do is 4
-    int16_t sounds = traffic_count <= 4 ? traffic_count : 4;
-
-    // Loop through traffic objects that are on screen
-    for (int16_t i = 0; i < sounds; i++)
-    {
-        oentry* t = traffic_adr[traffic_count - i - 1];
-        // Used to set panning of sound as car moves left and right in front of the player
-        int16_t pan = t->x >> 5; 
-        if (pan < -3) pan = -3;
-        if (pan >  3) pan =  3;
-        pan &= 7;
-        // Position into screen is used to set volume
-        uint8_t vol = (t->road_priority & 0x1F0) >> 1;
-        osoundint.engine_data[sound::TRAFFIC1 + i] = pan | vol;
-    }
+	return;
 }
