@@ -68,7 +68,7 @@ Video::~Video(void)
     delete tile_layer;
     if (pixels) delete[] pixels;
     renderer->disable();
-    delete renderer;
+    //delete renderer;
 }
 
 int Video::init(Roms* roms, video_settings_t* settings)

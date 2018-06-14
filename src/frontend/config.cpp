@@ -48,24 +48,32 @@ void Config::init()
  * BACKSPACE : 8
  * LEFT SHIFT : 304
  * RETURN : 13
+ * MENU : 319
  * */
 
 void Config::load(const std::string &filename)
 {
 	set_fps(2);
-	config.sound.enabled = 1;
+	config.sound.enabled = 0;
+	// Dpad, move
 	config.controls.keyconfig[0] = 273;
 	config.controls.keyconfig[1] = 274;
 	config.controls.keyconfig[2] = 276;
 	config.controls.keyconfig[3] = 275;
 	
+	// LCTRL, Accelerate
 	config.controls.keyconfig[4] = 306;
-	config.controls.keyconfig[5] = 308;
-	config.controls.keyconfig[6] = 9;
-	config.controls.keyconfig[7] = 8;
-	
+	// DEL, Brake
+	config.controls.keyconfig[5] = 8;
+	// 7
+	config.controls.keyconfig[6] = 55;
+	// 8
+	config.controls.keyconfig[7] = 56;
+	// ENTER, start
 	config.controls.keyconfig[8] = 13;
-	config.controls.keyconfig[9] = 32;
+	// Menu, add coins
+	config.controls.keyconfig[9] = 319;
+	// Button to go to menu
 	config.controls.keyconfig[10] = 27;
     controls.pad_id        = 0;
     controls.axis[0]       = 0;
@@ -87,7 +95,7 @@ void Config::load(const std::string &filename)
     ttrial.traffic = 3;
     cont_traffic   = 3;
     
-    controls.gear          = 0;
+    controls.gear          = 3;
     controls.steer_speed   = 3;
     controls.pedal_speed   = 4;
 	

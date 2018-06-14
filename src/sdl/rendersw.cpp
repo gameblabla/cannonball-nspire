@@ -60,7 +60,7 @@ bool RenderSW::init(int src_width, int src_height,
 	dst_width  = scn_width;
 	dst_height = scn_height;
         
-	SDL_ShowCursor(true);
+	SDL_ShowCursor(0);
 
     screen_xoff = 0;
 	screen_yoff = 0;
